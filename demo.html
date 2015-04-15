@@ -37,16 +37,140 @@
 
 <script src="http://apps.bdimg.com/libs/jquery/1.9.1/jquery.min.js"></script>
 <script src="lib/soundmanager2.js"></script>
+<script src="js/music-player.js"></script>
 <script>
-soundManager.setup({
-  url: '/path/to/swf-files/',
-  flashVersion: 9, // optional: shiny features (default = 8)
-  // optional: ignore Flash where possible, use 100% HTML5 mode
-  // preferFlash: false,
-  onready: function() {
-    // Ready to use; soundManager.createSound() etc. can now be called.
-  }
+// soundManager.setup({
+//   url: './swf/',
+//   flashVersion: 9, // optional: shiny features (default = 8)
+//   // optional: ignore Flash where possible, use 100% HTML5 mode
+//   // preferFlash: false,
+//   onready: function() {
+//     // Ready to use; soundManager.createSound() etc. can now be called.
+
+//     soundManager.createSound({
+//         id: 'mySound',
+//         url: './sound/blue-monk.mp3',
+//         autoLoad: true,
+//         autoPlay: false,
+//         onload: function() {
+//             console.log('The sound '+this.id+' loaded!');
+
+//             var mySMSound = soundManager.getSoundById('mySound');
+//             mySMSound.play();
+//         },
+//         volume: 50
+//     });
+//   }
+// });
+
+$(function(){
+    var totalSourceNum = 2,
+        loadedSourceNum = 0;
+    $.ajax({
+        url: 'lib/soundmanager2.js',
+        dataType: 'script',
+        success: function(){
+            console.log('## load finish: lib/soundmanager2.js');
+            loadedSourceNum++;
+            if (loadedSourceNum == totalSourceNum) {
+                init();
+            }
+        }
+    })
+
+    $.ajax({
+        url: 'js/music-player.js',
+        dataType: 'script',
+        success: function(){
+            console.log('## load finish: js/music-player.js');
+            loadedSourceNum++;
+            if (loadedSourceNum == totalSourceNum) {
+                init();
+            }
+        }
+    })
+
 });
+
+function init(){
+
+    var player = SwaggPlayer().init({
+        url: './swf',
+        el: document.getElementById( 'swagg-player' ),
+        songs: [
+          {
+            url: './sound/the-good-life.mp3',
+            artist: 'Nancy Wilson',
+            title: 'The Good Life',
+            art: './img/nancywilson.jpg'
+          },
+          {
+            url: './sound/miles-ahead.mp3',
+            artist: 'Miles Davis',
+            title: 'Miles Ahead',
+            art: './img/miles-davis.jpg'
+          },
+          {
+            url: './sound/blue-monk.mp3',
+            artist: 'Thelonious Monk',
+            title: 'Blue Monk',
+            art: './img/thelonious-monk.jpg'
+          }
+        ],
+        onResume: function( songData ) {
+          console.log( '------------- song resumed ------------' );
+          console.log( songData );
+          // playButton( 'pause' );
+        },
+
+        onPlay: function( songData ) {
+          console.log( '------------- song playing ------------' );
+          console.log( songData );
+          // changeMeta( songData );
+          // playButton( 'pause' );
+          setTimeout(function(){
+            // $.adaptiveBackground.run( adaptOpts );
+          }, 700);
+        },
+
+        onPause: function( songData ) {
+          console.log( '------------- song paused ------------' );
+          console.log( songData );
+          // playButton( 'play' );
+        },
+
+        onStop: function( songData ) {
+          console.log( '------------- song stopped ------------' );
+          console.log( songData );
+          // playButton( 'play' );
+        },
+
+        onFinish: function() {
+          // playButton( 'play' );
+        },
+
+        whilePlaying: function( time, percentComplete ) {
+          // document.querySelectorAll('.swagg-player-progress-bar__progress')[ 0 ].style.width = percentComplete + '%';
+          // document.querySelectorAll('.currMins')[ 0 ].innerHTML = timeFormat( time.current.min );
+          // document.querySelectorAll('.currSecs')[ 0 ].innerHTML = timeFormat( time.current.sec );
+        }
+    });
+
+    $('button[data-role="play"]').click(function(e){
+        player.play();
+        console.log('play');
+    });
+
+    $('button[data-role="next"]').click(function(e){
+        player.next();
+        console.log('next');
+    });
+
+    $('button[data-role="prev"]').click(function(e){
+        player.prev();
+        console.log('prev');
+    });
+}
 </script>
 </body>
 </html>
