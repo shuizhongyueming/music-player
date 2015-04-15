@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>音乐播放器</title>
+    <style>
+        li{
+            cursor: pointer;
+            line-height: 24px;
+            height: 24px;
+            background-color: #EDF9C3;
+            margin: 4px 0;
+            display: block;
+            padding-left: 8px;
+        }
+        li.curr,li:hover{
+            color: #119999;
+            background-color: #D7E0BB;
+        }
+        button.curr{
+            background-color: #9C9CD8;
+        }
+    </style>
+</head>
+<body>
+<h2>音乐播放列表</h2>
+<ul>
+    <li class="curr">blue-monk.mp3</li>
+    <li>miles-ahead.mp3</li>
+    <li>the-good-life.mp3</li>
+</ul>
+<h2>播放操作区</h2>
+<button data-role="prev" alt="上一首">&lt;</button>
+<button data-role="play" alt="播放">||</button>
+<button data-role="pause" alt="暂停">|&gt;</button>
+<button data-role="next" alt="下一首">&gt;</button>
+
+<script src="http://apps.bdimg.com/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="lib/soundmanager2.js"></script>
+<script>
+soundManager.setup({
+  url: '/path/to/swf-files/',
+  flashVersion: 9, // optional: shiny features (default = 8)
+  // optional: ignore Flash where possible, use 100% HTML5 mode
+  // preferFlash: false,
+  onready: function() {
+    // Ready to use; soundManager.createSound() etc. can now be called.
+  }
+});
+</script>
+</body>
+</html>
