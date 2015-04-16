@@ -1,99 +1,4 @@
-function MusicPlayer(conf) {
-  var self = this;
-
-    soundManager.setup({
-        url: './swf/', // path to load SWF from (overriding default)
-        bgColor: '#333333',
-        wmode: 'transparent',
-        debugMode: false,
-        preferFlash: false,
-        html5PollingInterval: 50,
-        onready: function() {
-            soundManager.setup({
-                defaultOptions: {
-                    autoLoad: true,
-                    multiShot: true,
-                    whileloading: function(){
-                        self.showProgress(this);
-                    },
-                    onid3: self.onid3,
-                    onload: function(){
-                        self.onload(this);
-                    },
-                    onplay: function(){
-                        self.onplay(this);
-                    },
-                    whileplaying: function(){
-                        self.whileplaying(this);
-                    },
-                    onfinish: function(){
-                        self.onfinish(this);
-                    }
-                }
-            });
-        }
-    });
-}
-
-  // scope within these event handler methods: "this" = SMSound() object instance (see SMSound() in soundmanager.js for reference)
-
-MusicPlayer.prototype.showProgress = function(smObj) {
-    // sound is loading, update bytes received using this.bytesLoaded / this.bytesTotal
-    if (self._getButton(smObj.id).className != 'loading') self._getButton(smObj.id).className = 'loading'; // a bit inefficient here..
-    self._showStatus(smObj.id,smObj.bytesLoaded,smObj.bytesTotal);
-};
-
-MusicPlayer.prototype.onload = function(smObj) {
-    var sID = smObj.id;
-    self._getButton(smObj.id).className = '';
-    self._getButton(smObj.id).title = ('Sound ID: '+smObj.id+' ('+smObj.url+')');
-};
-
-MusicPlayer.prototype.onfinish = function(smObj) {
-    self._getButton(smObj.id).className = '';
-    self._reset(smObj.id);
-};
-
-MusicPlayer.prototype.onplay = function(smObj) {
-    self._getButton(smObj.id).className = 'active';
-};
-
-MusicPlayer.prototype.whileplaying = function(smObj) {
-    self._showStatus(smObj.id,smObj.position,smObj.duration);
-};
-
-
-MusicPlayer.prototype._showStatus = function(sID,n1,n2) {
-    var o = self._getButton(sID).getElementsByTagName('div')[0];
-    var offX = (n2>0?(-self.progressWidth+parseInt((n1/n2)*o.offsetWidth)):-self.progressWidth);
-    o.style.backgroundPosition = offX+'px 0px';
-};
-
-MusicPlayer.prototype._getButton = function(sID) {
-    return document.getElementById(self.idPrefix+sID);
-};
-
-MusicPlayer.prototype._reset = function(sID) {
-    var id = sID;
-    self._showStatus(sID,1,1);
-    setTimeout(function(){self._showStatus(sID,0,0);},200);
-};
-
-MusicPlayer.prototype.init = function(songs) {
-    $.each(songs, function(i, n){
-        soundManager.createSound({
-            id: Utils.formId(songData.id),
-            url: songData.url,
-            autoPlay: false,
-            autoLoad: true
-        });
-    });
-
-};
-
-
-
-
+(function(soundManager){
 
 var Song = function(opts) {
     this.title = opts.title;
@@ -158,6 +63,7 @@ var SwaggPlayer = function() {
     function init(opts) {
         _data._element = opts.el;
         _data.swfUrl = opts.swf || '/swf';
+        _data.isLoop = opts.isLoop || false;
         _data.songs = [];
         _data.currentTrack = 0;
         // soundManager.useFlashBlock = true;
@@ -167,11 +73,9 @@ var SwaggPlayer = function() {
             // useHighPerformance: true,
             // useFastPolling: true,
             onready: function() {
-                console.log('soundmanager ready');
                 _load(opts);
             }
         });
-        console.log('init');
 
         return _api;
     }
@@ -205,9 +109,10 @@ var SwaggPlayer = function() {
                 id: Utils.formId(songData.id),
                 url: songData.url,
                 autoPlay: false,
-                autoLoad: true,
+                autoLoad: false,
                 onload: function() {
-                    console.log('The ' + songData.title + ' loaded!');
+                    // console.log('The ' + songData.title + ' loaded!');
+                    // songData.isLoaded = true;
                 },
                 onplay: function() {
                     if (opts.onPlay) {
@@ -235,7 +140,7 @@ var SwaggPlayer = function() {
                     if (opts.onFinish) {
                         opts.onFinish();
                     }
-                    if (!_isLastTrack()) {
+                    if (!_isLastTrack() || _data.isLoop) {
                         _next();
                     }
                 },
@@ -248,10 +153,38 @@ var SwaggPlayer = function() {
                 },
 
                 whileplaying: function() {
+                    var timeProgress,
+                        percentComplete,
+                        nextIndex,
+                        nextSong;
                     if (opts.whilePlaying) {
-                        var timeProgress = _determineTimeProgress(this);
-                        var percentComplete = _determineByteProgress(this);
+                        timeProgress = _determineTimeProgress(this);
+                        percentComplete = _determineByteProgress(this);
                         opts.whilePlaying(timeProgress, percentComplete);
+
+                        // 在当前音乐播放一半之后，开始尝试加载下一首
+                        if (percentComplete > 50) {
+                            nextIndex = songData.id+1;
+                            if (nextIndex >= opts.songs.length){
+                                nextIndex = 0;
+                            }
+
+                            nextSong = _data.songs[nextIndex];
+
+                            /**
+                             * readyState
+                             * 0 = uninitialised
+                             * 1 = loading
+                             * 2 = failed/error
+                             * 3 = loaded/success
+                             */
+                            // console.log(nextSong.raw.readyState);
+                            if (nextSong.raw.readyState === 0 || nextSong.raw.readyState === 2) {
+                                nextSong.raw.load();
+                            }
+
+
+                        }
                     }
                 }
             });
@@ -314,7 +247,7 @@ var SwaggPlayer = function() {
     function _play(index) {
         // if an index is supplied play a specific song
         // otherwise just play the current song
-        if (index) {
+        if (typeof index !== 'undefined') {
             _data.currentTrack = index;
         } else {
             index = _data.currentTrack;
@@ -397,6 +330,10 @@ var SwaggPlayer = function() {
         };
     }
 
+    function _getCurrIndex(){
+        return _data.currentTrack;
+    }
+
     function _setData(index, attr, item) {
         var song = _data.songs[index];
         var changedItems = {};
@@ -428,7 +365,40 @@ var SwaggPlayer = function() {
     _api.prev = _prev;
     _api.cursor = _cursor;
     _api.setData = _setData;
+    _api.getCurrIndex = _getCurrIndex;
 
     return _api;
 
 };
+    if (typeof module === 'object' && module && typeof module.exports === 'object') {
+
+      /**
+       * commonJS module
+       */
+
+
+      module.exports.SwaggPlayer = SwaggPlayer;
+
+    } else if (typeof define === 'function' && define.amd) {
+
+      /**
+       * AMD - requireJS
+       * example usage:
+       * require(["/path/to/SwaggPlayer.js"], function(SwaggPlayer) {
+       *   // ...
+       * });
+       */
+
+      define(function() {
+        return SwaggPlayer;
+      });
+
+    } else {
+
+      // standard browser case
+
+      window.SwaggPlayer = SwaggPlayer;
+
+    }
+
+}(soundManager));
