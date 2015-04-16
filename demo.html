@@ -63,39 +63,35 @@
 //   }
 // });
 
-$(function(){
-    var totalSourceNum = 2,
-        loadedSourceNum = 0;
-    $.ajax({
-        url: 'lib/soundmanager2.js',
-        dataType: 'script',
-        success: function(){
-            console.log('## load finish: lib/soundmanager2.js');
-            loadedSourceNum++;
-            if (loadedSourceNum == totalSourceNum) {
-                init();
-            }
-        }
-    })
 
-    $.ajax({
-        url: 'js/music-player.js',
-        dataType: 'script',
-        success: function(){
-            console.log('## load finish: js/music-player.js');
-            loadedSourceNum++;
-            if (loadedSourceNum == totalSourceNum) {
-                init();
-            }
-        }
-    })
+    // soundManager.setup({
+    //   url: './swf/',
+    //   flashVersion: 9, // optional: shiny features (default = 8)
+    //   // optional: ignore Flash where possible, use 100% HTML5 mode
+    //   // preferFlash: false,
+    //   onready: function() {
+    //     // Ready to use; soundManager.createSound() etc. can now be called.
+    //     console.log('ready')
+    //     soundManager.createSound({
+    //         id: 'mySound',
+    //         url: './sound/blue-monk.mp3',
+    //         autoLoad: true,
+    //         autoPlay: false,
+    //         onload: function() {
+    //             console.log('The sound '+this.id+' loaded!');
 
-});
+    //             var mySMSound = soundManager.getSoundById('mySound');
+    //             mySMSound.play();
+    //         },
+    //         volume: 50
+    //     });
+    //   }
+    // });
 
-function init(){
-
+    console.log('init;');
     var player = SwaggPlayer().init({
-        url: './swf',
+        swf: './swf/',
+
         el: document.getElementById( 'swagg-player' ),
         songs: [
           {
@@ -170,7 +166,7 @@ function init(){
         player.prev();
         console.log('prev');
     });
-}
+
 </script>
 </body>
 </html>
