@@ -245,19 +245,20 @@ var SwaggPlayer = function() {
 
     // play a song at the given index
     function _play(index) {
+        var sound;
         // if an index is supplied play a specific song
         // otherwise just play the current song
         if (typeof index !== 'undefined') {
             _data.currentTrack = index;
-        } else {
-            index = _data.currentTrack;
         }
 
-        var sound = _data.songs[index];
+        sound = _data.songs[_data.currentTrack];
 
-        // check if we're in a paused state. if not, play from the beginning.
-        // if we are, then resume play
-        if (sound && !Utils.shouldResume(sound)) {
+        /**
+         * 没有index的时候，表明进行暂停操作
+         * 有，表明进行切换
+         */
+        if (typeof index !== 'undefined') {
             _stop();
             sound.raw.play();
         } else {
